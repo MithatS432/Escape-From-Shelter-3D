@@ -1,5 +1,4 @@
 using UnityEngine;
-
 // Objelerin etkileşim için implement edeceği arayüz
 public interface IClickable
 {
@@ -21,27 +20,32 @@ public class PlayerClickSystem : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
             Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
-            RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, interactRange, interactMask))
+            if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
             {
                 if (currentCursor != null)
                     Destroy(currentCursor);
 
                 currentCursor = Instantiate(cursorPrefab, hit.point + hit.normal * 0.01f, Quaternion.identity);
                 currentCursor.transform.forward = hit.normal;
-
                 Destroy(currentCursor, cursorLifetime);
 
                 IClickable clickable = hit.collider.GetComponent<IClickable>();
                 if (clickable != null)
                 {
-                    clickable.OnClick();
+                    if (Input.GetMouseButtonDown(0))
+                        clickable.OnClick();
+                    else if (Input.GetMouseButtonDown(1))
+                    {
+                        var method = clickable.GetType().GetMethod("OnRightClick");
+                        if (method != null)
+                            method.Invoke(clickable, null);
+                    }
                 }
             }
         }
     }
 }
+
