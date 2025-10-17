@@ -4,7 +4,7 @@ public class RedCube : MonoBehaviour, IClickable
 {
     private int clickCount = 0;
     private int maxClicks = 3;
-    private float moveAmount = 1f;
+    private float moveAmount = 2f;
     private Vector3 startPos;
     private bool isMoving = false;
 
