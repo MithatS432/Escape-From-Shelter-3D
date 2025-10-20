@@ -17,11 +17,13 @@ public class PlayerClickSystem : MonoBehaviour
     public float cursorLifetime = 1f;
 
     private GameObject currentCursor;
+    public AudioClip clickSound;
 
     void Update()
     {
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
         {
+            AudioSource.PlayClipAtPoint(clickSound, playerCamera.transform.position, 1.0f);
             Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
             if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
             {
