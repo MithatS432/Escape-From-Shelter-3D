@@ -19,21 +19,21 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private float verticalRotation = 0f;
     private Vector3 inputDirection;
+    private float groundCheckCooldown;
 
     [Header("UI Text Settings")]
     public TextMeshProUGUI firstText, secondText, thirdText, fourthText, fifthText;
     public GameObject firstTextObject, secondTextObject, thirdTextObject, fourthTextObject, fifthTextObject;
+    public GameObject wall1, wall2, wall3;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
-        // Hızlı hareket eden nesneler için çarpışma hassasiyetini artırır.
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
 
         boxCollider = GetComponent<BoxCollider>();
-        // Player'ın collider'ının trigger olmadığından emin ol
         if (boxCollider != null)
             boxCollider.isTrigger = false;
 
@@ -59,13 +59,12 @@ public class PlayerController : MonoBehaviour
 
     private void HandleRotation()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-        // Dönüşü Frame rate'ten bağımsız hale getirmek için Time.deltaTime
-        transform.Rotate(Vector3.up * mouseX * Time.deltaTime);
+        transform.Rotate(Vector3.up * mouseX);
 
-        verticalRotation -= mouseY * Time.deltaTime;
+        verticalRotation -= mouseY;
         verticalRotation = Mathf.Clamp(verticalRotation, -lookLimit, lookLimit);
 
         if (cameraTransform != null)
@@ -84,13 +83,11 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            // Zıplamadan önce mevcut dikey hızı sıfırlayarak her zaman aynı kuvvetle zıplamasını sağla.
-            // Eski: rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
             isGrounded = false;
+            groundCheckCooldown = 0.1f;
         }
     }
 
@@ -103,33 +100,32 @@ public class PlayerController : MonoBehaviour
     private void HandleMovement()
     {
         Vector3 targetVelocity = transform.TransformDirection(inputDirection) * speed;
-
         Vector3 newVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
-
         rb.linearVelocity = newVelocity;
     }
 
     private void CheckGround()
     {
-        float rayDistance = (boxCollider != null ? (boxCollider.size.y / 2f) : 0.9f) + 0.15f;
-        Vector3 rayOrigin = transform.position + Vector3.up * 2.1f;
+        if (groundCheckCooldown > 0)
+        {
+            groundCheckCooldown -= Time.fixedDeltaTime;
+            return;
+        }
+
+        float rayDistance = (boxCollider != null ? (boxCollider.size.y / 2f) : 0.9f) + 0.2f;
+        Vector3 rayOrigin = transform.position + Vector3.up * 1.5f;
 
         if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, rayDistance))
-        {
             isGrounded = true;
-        }
         else
-        {
             isGrounded = false;
-        }
     }
 
     private void OnDrawGizmos()
     {
         if (boxCollider == null) return;
         Gizmos.color = isGrounded ? Color.green : Color.red;
-        // Yer kontrolü için görsel bir yardım
-        Gizmos.DrawLine(transform.position, transform.position + Vector3.down * 0.2f);
+        Gizmos.DrawLine(transform.position + Vector3.up * 0.1f, transform.position + Vector3.down * 0.2f);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -164,25 +160,17 @@ public class PlayerController : MonoBehaviour
             fifthTextObject.SetActive(false);
             Invoke(nameof(CloseText5), 2f);
         }
+        else if (other.CompareTag("WallTrigger"))
+        {
+            wall1.SetActive(true);
+            wall2.SetActive(true);
+            wall3.SetActive(true);
+        }
     }
-    void CloseText1()
-    {
-        firstText.gameObject.SetActive(false);
-    }
-    void CloseText2()
-    {
-        secondText.gameObject.SetActive(false);
-    }
-    void CloseText3()
-    {
-        thirdText.gameObject.SetActive(false);
-    }
-    void CloseText4()
-    {
-        fourthText.gameObject.SetActive(false);
-    }
-    void CloseText5()
-    {
-        fifthText.gameObject.SetActive(false);
-    }
+
+    void CloseText1() => firstText.gameObject.SetActive(false);
+    void CloseText2() => secondText.gameObject.SetActive(false);
+    void CloseText3() => thirdText.gameObject.SetActive(false);
+    void CloseText4() => fourthText.gameObject.SetActive(false);
+    void CloseText5() => fifthText.gameObject.SetActive(false);
 }
