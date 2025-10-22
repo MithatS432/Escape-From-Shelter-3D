@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 [RequireComponent(typeof(Rigidbody), typeof(BoxCollider))]
@@ -10,6 +11,7 @@ public class PlayerController : MonoBehaviour
     [Header("Hareket Ayarları")]
     public float speed = 6f;
     public float jumpForce = 7f;
+    private float zRange = 700f;
 
     [Header("Kamera ve Dönüş Ayarları")]
     public Transform cameraTransform;
@@ -55,6 +57,8 @@ public class PlayerController : MonoBehaviour
         HandleRotation();
         HandleInput();
         HandleJump();
+        if (transform.position.z >= zRange)
+            SceneManager.LoadScene(0);
     }
 
     private void HandleRotation()
@@ -85,11 +89,11 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-
             isGrounded = false;
             groundCheckCooldown = 0.1f;
         }
     }
+
 
     void FixedUpdate()
     {
@@ -112,20 +116,18 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        float rayDistance = (boxCollider != null ? (boxCollider.size.y / 2f) : 0.9f) + 0.2f;
-        Vector3 rayOrigin = transform.position + Vector3.up * 1.5f;
+        float halfHeight = boxCollider.size.y * 0.5f * transform.lossyScale.y;
+        Vector3 origin = transform.position + Vector3.up * 0.1f;
 
-        if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, rayDistance))
-            isGrounded = true;
-        else
-            isGrounded = false;
+        isGrounded = Physics.CheckSphere(origin + Vector3.down * (halfHeight + 0.05f), 0.25f, LayerMask.GetMask("Default"));
     }
 
-    private void OnDrawGizmos()
+    void OnDrawGizmos()
     {
-        if (boxCollider == null) return;
         Gizmos.color = isGrounded ? Color.green : Color.red;
-        Gizmos.DrawLine(transform.position + Vector3.up * 0.1f, transform.position + Vector3.down * 0.2f);
+        float halfHeight = boxCollider != null ? boxCollider.size.y * 0.5f * transform.lossyScale.y : 1f;
+        Vector3 origin = transform.position + Vector3.up * 0.1f;
+        Gizmos.DrawWireSphere(origin + Vector3.down * (halfHeight + 0.05f), 0.25f);
     }
 
     private void OnTriggerEnter(Collider other)
