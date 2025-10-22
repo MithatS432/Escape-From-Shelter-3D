@@ -18,10 +18,16 @@ public class PlayerController : MonoBehaviour
     public float mouseSensitivity = 100f;
     public float lookLimit = 85f;
 
+    [Header("Zemin Kontrol Ayarları")]
+    public LayerMask groundLayer = -1; // Tüm layer'lar
+    public float groundCheckCooldownDuration = 0.3f;
+    public float checkSphereRadius = 0.3f;
+
     private bool isGrounded;
     private float verticalRotation = 0f;
     private Vector3 inputDirection;
     private float groundCheckCooldown;
+    private bool jumpInputUsed;
 
     [Header("UI Text Settings")]
     public TextMeshProUGUI firstText, secondText, thirdText, fourthText, fifthText;
@@ -31,17 +37,28 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        boxCollider = GetComponent<BoxCollider>();
+        
+        // Rigidbody ayarları
         rb.freezeRotation = true;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.useGravity = true;
+        
+        // Collider ayarı
+        boxCollider.isTrigger = false;
 
-        boxCollider = GetComponent<BoxCollider>();
-        if (boxCollider != null)
-            boxCollider.isTrigger = false;
+        // Layer ayarı
+        if (groundLayer.value == 0)
+        {
+            groundLayer = LayerMask.GetMask("Default");
+        }
 
+        // Fare ayarları
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
+        // Kamera kontrolü
         if (cameraTransform == null)
         {
             Camera cam = GetComponentInChildren<Camera>();
@@ -50,6 +67,8 @@ public class PlayerController : MonoBehaviour
             else
                 Debug.LogError("PlayerController: cameraTransform bulunamadı!");
         }
+
+        Debug.Log("PlayerController başlatıldı. Ground Layer: " + groundLayer.value);
     }
 
     void Update()
@@ -57,6 +76,7 @@ public class PlayerController : MonoBehaviour
         HandleRotation();
         HandleInput();
         HandleJump();
+
         if (transform.position.z >= zRange)
             SceneManager.LoadScene(0);
     }
@@ -79,21 +99,33 @@ public class PlayerController : MonoBehaviour
     {
         float x = Input.GetAxisRaw("Horizontal");
         float z = Input.GetAxisRaw("Vertical");
-
         inputDirection = new Vector3(x, 0f, z).normalized;
     }
 
     private void HandleJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isGrounded = false;
-            groundCheckCooldown = 0.1f;
+            if (isGrounded && !jumpInputUsed)
+            {
+                // Dikey hızı sıfırla ve zıpla
+                rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+                isGrounded = false;
+                jumpInputUsed = true;
+                groundCheckCooldown = groundCheckCooldownDuration;
+                
+                Debug.Log("Zıplama gerçekleşti!");
+            }
+        }
+        
+        // Space tuşu bırakıldığında resetle
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            jumpInputUsed = false;
         }
     }
-
 
     void FixedUpdate()
     {
@@ -117,17 +149,33 @@ public class PlayerController : MonoBehaviour
         }
 
         float halfHeight = boxCollider.size.y * 0.5f * transform.lossyScale.y;
-        Vector3 origin = transform.position + Vector3.up * 0.1f;
-
-        isGrounded = Physics.CheckSphere(origin + Vector3.down * (halfHeight + 0.05f), 0.25f, LayerMask.GetMask("Default"));
+        Vector3 checkPosition = transform.position + Vector3.down * (halfHeight + 0.15f);
+        
+        bool wasGrounded = isGrounded;
+        isGrounded = Physics.CheckSphere(checkPosition, checkSphereRadius, groundLayer, QueryTriggerInteraction.Ignore);
+        
+        // Eğer yukarı doğru hareket ediyorsa, grounded olmamalı
+        if (rb.linearVelocity.y > 0.1f)
+        {
+            isGrounded = false;
+        }
+        
+        // Yere yeni temas ettiysek
+        if (!wasGrounded && isGrounded)
+        {
+            Debug.Log("Yere temas edildi!");
+            jumpInputUsed = false;
+        }
     }
 
     void OnDrawGizmos()
     {
+        if (boxCollider == null) return;
+
         Gizmos.color = isGrounded ? Color.green : Color.red;
-        float halfHeight = boxCollider != null ? boxCollider.size.y * 0.5f * transform.lossyScale.y : 1f;
-        Vector3 origin = transform.position + Vector3.up * 0.1f;
-        Gizmos.DrawWireSphere(origin + Vector3.down * (halfHeight + 0.05f), 0.25f);
+        float halfHeight = boxCollider.size.y * 0.5f * transform.lossyScale.y;
+        Vector3 checkPosition = transform.position + Vector3.down * (halfHeight + 0.15f);
+        Gizmos.DrawWireSphere(checkPosition, checkSphereRadius);
     }
 
     private void OnTriggerEnter(Collider other)

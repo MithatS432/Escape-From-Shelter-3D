@@ -482,7 +482,7 @@ GameObject:
   - component: {fileID: 164882278}
   - component: {fileID: 164882277}
   - component: {fileID: 164882276}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level1
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -1173,7 +1173,7 @@ GameObject:
   - component: {fileID: 312097008}
   - component: {fileID: 312097007}
   - component: {fileID: 312097006}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level5
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -1822,7 +1822,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 27.784025, y: 9.277746, z: -236.07043}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 3, y: 1, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 222535814}
@@ -1868,10 +1868,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 20
-  jumpForce: 8
+  jumpForce: 10
   cameraTransform: {fileID: 222535814}
   mouseSensitivity: 400
-  lookLimit: 85
+  lookLimit: 100
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundCheckCooldownDuration: 0.2
+  checkSphereRadius: 0.25
   firstText: {fileID: 828851198}
   secondText: {fileID: 527208350}
   thirdText: {fileID: 1069165448}
@@ -1904,8 +1909,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.55618477, y: 1.6822183, z: 0.767395}
-  m_Center: {x: -0.070363045, y: -0.224244, z: -0.11630249}
+  m_Size: {x: 0.55618477, y: 2.2641132, z: 0.767395}
+  m_Center: {x: -0.070363045, y: -0.51519144, z: -0.11630249}
 --- !u!114 &532437806
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2992,7 +2997,7 @@ GameObject:
   - component: {fileID: 840252448}
   - component: {fileID: 840252447}
   - component: {fileID: 840252446}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level3
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -4063,7 +4068,7 @@ GameObject:
   - component: {fileID: 1350305802}
   - component: {fileID: 1350305801}
   - component: {fileID: 1350305800}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level2
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -4612,7 +4617,7 @@ GameObject:
   - component: {fileID: 1459660651}
   - component: {fileID: 1459660650}
   - component: {fileID: 1459660649}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level7
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -4833,7 +4838,7 @@ GameObject:
   - component: {fileID: 1546234998}
   - component: {fileID: 1546234997}
   - component: {fileID: 1546234996}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level6
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -5672,7 +5677,7 @@ GameObject:
   - component: {fileID: 1991353340}
   - component: {fileID: 1991353339}
   - component: {fileID: 1991353338}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Level4
   m_TagString: Ground
   m_Icon: {fileID: 0}
@@ -6247,7 +6252,7 @@ GameObject:
   - component: {fileID: 2127292693}
   - component: {fileID: 2127292692}
   - component: {fileID: 2127292691}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Ground
   m_TagString: Ground
   m_Icon: {fileID: 0}
